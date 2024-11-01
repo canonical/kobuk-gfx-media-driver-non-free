@@ -1,3 +1,9 @@
+intel-media-driver-non-free (24.4.2-0ubuntu1~ppa1) oracular; urgency=medium
+
+  * Bump version to 24.4.2 
+
+ -- Pavel Androniychuk <pavel.androniychuk@intel.com>  Fri, 01 Nov 2024 09:17:42 -0700
+
 intel-media-driver-non-free (24.3.4-0ubuntu1~ppa1) oracular; urgency=medium
 
   * Bump to 24.3.4

@@ -1714,7 +1714,7 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
 
     MOS_ZeroMemory(&PipeControlParams, sizeof(PipeControlParams));
     PipeControlParams.dwFlushMode                   = MHW_FLUSH_WRITE_CACHE;
-    PipeControlParams.bGenericMediaStateClear       = true;
+    PipeControlParams.bGenericMediaStateClear       = true; // this value is ignored for compute walker.
     PipeControlParams.bIndirectStatePointersDisable = true;
     PipeControlParams.bDisableCSStall               = false;
 
@@ -2077,7 +2077,7 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderCmdPacket::SetL0FcParams(PRENDER_L0_FC_PARAMS params)
+MOS_STATUS VpRenderCmdPacket::SetOclFcParams(PRENDER_OCL_FC_PARAMS params)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);

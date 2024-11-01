@@ -332,13 +332,16 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT                   "Enable L0 3DLUT"
 #define __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED                  "L0 3DLUT Enabled"
 
-// For L0 FC
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_FC                      "Enable L0 FC"
-#define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_L0_FC_FP                  "Disable L0 FC FP"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED                     "L0 FC Enabled"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT                      "L0 FC Diff Report"
+// For OCL FC
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_FC                      "Enable OCL FC"
+#define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_OCL_FC_FP                  "Disable OCL FC FP"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_SUPPORTED                   "OCL FC Supported"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT                      "OCL FC Diff Report"
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT "Enable VESFC Linearoutput By TileConvert"
+
+#define  __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT              "Enable VEBOX ID REPORT"
+#define  __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID                       "USED VEBOX ID"
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
 class VpUtils
@@ -444,6 +447,43 @@ public:
     static bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE surface, PMOS_INTERFACE osInterface);
 
     static bool IsVerticalRotation(VPHAL_ROTATION rotation);
+
+    //!
+    //! \brief    Performs Color Space Convert for Sample Pixel
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //! \param    [out] pOutput
+    //!           Pointer to float
+    //! \param    [in] pInput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetPixelWithCSCForColorFill(
+        VPHAL_COLOR_SAMPLE_8 &input,
+        float                 output[4],
+        VPHAL_CSPACE          srcCspace,
+        VPHAL_CSPACE          dstCspace);
+
+    //!
+    //! \brief    Get Color Space Convert Normalized Matrix
+    //! \details  Get Color Space Convert Normalized Matrix
+    //! \param    [out] pCSC_Matrix
+    //!           Pointer to float
+    //! \param    [in] src
+    //!           Source Color Space
+    //! \param    [in] dst
+    //!           Target Color Space
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetNormalizedCSCMatrix(
+        MEDIA_CSPACE src,
+        MEDIA_CSPACE dst,
+        float        cscMatrix[12]);
 
 private:
     //!
