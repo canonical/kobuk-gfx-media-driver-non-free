@@ -410,20 +410,20 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         m_ctrlValDefault.enableIFNCC = false;
     }
 
-    bool bEnableL03DLut = false;
+    bool bEnableOCL3DLut = false;
     eRegKeyReadStatus   = ReadUserSettingForDebug(
         m_userSettingPtr,
-        bEnableL03DLut,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT,
+        bEnableOCL3DLut,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_3DLUT,
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.bEnableL03DLut = bEnableL03DLut;
+        m_ctrlValDefault.enableOcl3DLut = bEnableOCL3DLut ? VP_CTRL_ENABLE : VP_CTRL_DISABLE;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.bEnableL03DLut = false;
+        m_ctrlValDefault.enableOcl3DLut = VP_CTRL_DEFAULT;
     }
 
     bool bForceOclFC   = false;
@@ -434,12 +434,12 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.bForceOclFC = bForceOclFC;
+        m_ctrlValDefault.forceOclFC = bForceOclFC ? VP_CTRL_ENABLE : VP_CTRL_DISABLE;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.bForceOclFC = false;
+        m_ctrlValDefault.forceOclFC = VP_CTRL_DEFAULT;
     }
 
     bool bDisableOclFcFp = false;
@@ -509,9 +509,38 @@ PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO VpUserFeatureControl::GetOcaFeautreContro
 
 bool VpUserFeatureControl::EnableOclFC()
 {
-    bool bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclFC());
-#if (_DEBUG || _RELEASE_INTERNAL)
-    bEnableOclFC |= m_ctrlVal.bForceOclFC;
-#endif
+    bool bEnableOclFC = false;
+    if (m_ctrlVal.forceOclFC == VP_CTRL_ENABLE)
+    {
+        bEnableOclFC = true;
+    }
+    else if (m_ctrlVal.forceOclFC == VP_CTRL_DISABLE)
+    {
+        bEnableOclFC = false;
+    }
+    else // if (m_ctrlVal.forceOclFC == VP_CTRL_DEFAULT)
+    {
+        bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->IsOclKernelEnabled());
+    }
+    VP_PUBLIC_NORMALMESSAGE("EnableOclFC set as %d", bEnableOclFC);
     return bEnableOclFC;
+}
+
+bool VpUserFeatureControl::EnableOcl3DLut()
+{
+    bool bEnableOcl3DLut = false;
+    if (m_ctrlVal.enableOcl3DLut == VP_CTRL_ENABLE)
+    {
+        bEnableOcl3DLut = true;
+    }
+    else if (m_ctrlVal.enableOcl3DLut == VP_CTRL_DISABLE)
+    {
+        bEnableOcl3DLut = false;
+    }
+    else // if (m_ctrlVal.enableOcl3DLut == VP_CTRL_DEFAULT)
+    {
+        bEnableOcl3DLut = (m_vpPlatformInterface && m_vpPlatformInterface->IsOclKernelEnabled());
+    }
+    VP_PUBLIC_NORMALMESSAGE("EnableOcl3DLut set as %d", bEnableOcl3DLut);
+    return bEnableOcl3DLut;
 }

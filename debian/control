@@ -1,7 +1,8 @@
 Source: intel-media-driver-non-free
 Section: non-free/video
 Priority: optional
-Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
 Uploaders:
  Sebastian Ramacher <sramacher@debian.org>
 Build-Depends:
