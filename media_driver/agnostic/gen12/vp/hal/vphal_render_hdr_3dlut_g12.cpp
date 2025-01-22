@@ -374,8 +374,8 @@ void Hdr3DLutGeneratorG12::InitCoefSurface(const uint32_t maxDLL, const uint32_t
 
         if (maxDLL > 800)
         {
-            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2H;
-            VPHAL_RENDER_NORMALMESSAGE("Change curve, maxDLL %d, hdrMode: %d!", maxDLL, tmMode);
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2E;
+            VPHAL_RENDER_NORMALMESSAGE("Change curve to H2E, maxDLL %d", maxDLL);
         }
         else
         {
