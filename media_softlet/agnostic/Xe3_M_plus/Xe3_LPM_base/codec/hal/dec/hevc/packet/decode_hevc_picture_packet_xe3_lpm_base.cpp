@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ MOS_STATUS HevcDecodePicPktXe3_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr &&
-        m_downSamplingFeature->IsEnabled())
+        m_downSamplingFeature->IsEnabled() && !m_downSamplingFeature->IsVDAQMHistogramEnabled())
     {
         if (!IsFrontEndPhase())
         {
@@ -73,7 +73,7 @@ MOS_STATUS HevcDecodePicPktXe3_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
 
     auto &params = m_hcpItf->MHW_GETPAR_F(HCP_PIPE_BUF_ADDR_STATE)();
     params       = {};
-    HevcDecodePicPktXe3_Lpm_Base::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
+    DECODE_CHK_STATUS(HevcDecodePicPktXe3_Lpm_Base::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
     DECODE_CHK_STATUS(AddAllCmds_HCP_SURFACE_STATE(cmdBuffer));
     DECODE_CHK_STATUS(m_hcpItf->MHW_ADDCMD_F(HCP_PIPE_BUF_ADDR_STATE)(&cmdBuffer));
     SETPAR_AND_ADDCMD(HCP_IND_OBJ_BASE_ADDR_STATE, m_hcpItf, &cmdBuffer);
@@ -178,7 +178,7 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcDecodePicPktXe3_Lpm_Base)
     DECODE_FUNC_CALL();
 
     params = {};
-    HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
+    DECODE_CHK_STATUS(HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
 #ifdef _MMC_SUPPORTED
     HevcDecodeMemCompXe3_Lpm_Base *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompXe3_Lpm_Base *>(m_mmcState);
@@ -209,6 +209,13 @@ MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcDecodePicPktXe3_Lpm_Base)
     params.pHevcExtPicParams                       = m_hevcRextPicParams;
     params.pHevcSccPicParams                       = m_hevcSccPicParams;
     params.ibcMotionCompensationBufferReferenceIdc = m_hevcBasicFeature->m_refFrames.m_IBCRefIdx;
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_downSamplingFeature && m_downSamplingFeature->IsVDAQMHistogramEnabled())
+    {
+        params.vdaqmEnable = true;
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

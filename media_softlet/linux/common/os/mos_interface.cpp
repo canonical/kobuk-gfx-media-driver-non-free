@@ -3102,22 +3102,37 @@ MOS_STATUS MosInterface::GetVeHintParams(
     return streamState->virtualEngineInterface->GetHintParams(scalableMode, hintParams);
 }
 
-MOS_STATUS MosInterface::SetVeSubmissionType(
-    MOS_STREAM_HANDLE     streamState,
-    COMMAND_BUFFER_HANDLE cmdBuf,
-    MOS_SUBMISSION_TYPE   type)
+MOS_STATUS MosInterface::SetHybridCmdMgrToGpuContext(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       gpuCtxOnHybridCmd)
 {
-    MOS_OS_CHK_NULL_RETURN(cmdBuf);
-    MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+    return MOS_STATUS_SUCCESS;
+}
 
-    return streamState->virtualEngineInterface->SetSubmissionType(cmdBuf, type);
+MOS_STATUS MosInterface::StartHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::StopHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::SubmitPackage(
+    PMOS_INTERFACE pOsInterface,
+    CmdPackage    &cmdPackage)
+{
+    return MOS_STATUS_SUCCESS;
 }
 
 #if _DEBUG || _RELEASE_INTERNAL
 
-uint8_t MosInterface::GetVeEngineCount(
-    MOS_STREAM_HANDLE streamState)
+    uint8_t
+    MosInterface::GetVeEngineCount(
+        MOS_STREAM_HANDLE streamState)
 {
     return streamState && streamState->virtualEngineInterface ?
         streamState->virtualEngineInterface->GetEngineCount() : 0;

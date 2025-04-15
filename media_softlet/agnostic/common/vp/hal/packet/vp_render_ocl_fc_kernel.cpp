@@ -222,12 +222,6 @@ MOS_STATUS VpRenderOclFcKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderOclFcKernel::SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP &statefulSurfaces)
-{
-    m_argIndexSurfMap = statefulSurfaces;
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS VpRenderOclFcKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();

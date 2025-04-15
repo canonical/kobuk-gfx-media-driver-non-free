@@ -191,6 +191,7 @@ enum VpKernelID
     kernelOclFc420PL3Input,
     kernelOclFc420PL3Output,
     kernelOclFc422HVInput,
+
     baseKernelMaxNumID
 };
 
@@ -200,7 +201,22 @@ enum VpKernelIDNext
     kernelHdr3DLutCalc = vpKernelIDNextBase,
     kernelHdr3DLutCalcOcl,
     kernelHVSCalc,
+
+    // AI Common
+    kernelAiCommon,
+    kernelAiCommonEnd = kernelAiCommon + 0x1000,
+
     vpKernelIDNextMax
+};
+
+//!
+//! \brief Base VP graph list
+//!
+enum VP_GRAPH_ID
+{
+    VP_GRAPH_ID_INVALID = 0,
+
+    VP_GRAPH_ID_BASE_MAX
 };
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
@@ -551,7 +567,8 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
     VPHAL_OUTPUT_PIPE_MODE_INVALID = -1,  //!< None output pipe selected. This is an invalid state
     VPHAL_OUTPUT_PIPE_MODE_COMP    = 0,   //!< Composition output pipe. RenderTarget will be written by Composition
     VPHAL_OUTPUT_PIPE_MODE_SFC     = 1,   //!< SFC output pipe. RenderTarget will be written by SFC
-    VPHAL_OUTPUT_PIPE_MODE_VEBOX   = 2    //!< Vebox output pipe. RenderTarget will be written by Vebox
+    VPHAL_OUTPUT_PIPE_MODE_VEBOX   = 2,    //!< Vebox output pipe. RenderTarget will be written by Vebox
+    VPHAL_OUTPUT_PIPE_MODE_NPU     = 3
 } VPHAL_OUTPUT_PIPE_MODE,
     *PVPHAL_OUTPUT_PIPE_MODE;
 
