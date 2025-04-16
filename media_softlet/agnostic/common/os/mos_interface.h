@@ -1953,29 +1953,6 @@ public:
         PMOS_VIRTUALENGINE_HINT_PARAMS *hintParams);
 
     //!
-    //! \brief    Set Virtual Engine Submission Type
-    //!
-    //! \details  [Virtual Engine Interface] Set submission type for the provided cmd buffer
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  Set submission type as per cmd buffer hint parameter. Must be set before submission.
-    //!           Submission type is to set cmd buffer (primary or secondary) property to indicate 
-    //!           which pipe it belongs. See MOS_SUBMISSION_TYPE.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [out] cmdBuf
-    //!           Handle of cmd buffer to set submission type
-    //! \param    [in] type
-    //!           Submission type to set
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS SetVeSubmissionType(
-        MOS_STREAM_HANDLE     streamState,
-        COMMAND_BUFFER_HANDLE cmdBuf,
-        MOS_SUBMISSION_TYPE   type);
-
-    //!
     //! \brief    Get Adapter BDF
     //! \details  [System info Interface] Get Adapter BDF
     //! \details  Caller: DDI & HAL
@@ -1990,6 +1967,56 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     static MOS_STATUS GetAdapterBDF(PMOS_CONTEXT mosCtx, ADAPTER_BDF *adapterBDF);
+    
+    //!
+    //! \brief    Set Hybrid Cmd To GpuContext
+    //! \details  Set Hybrid Cmd To GpuContext
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    uint64_t gpuCtxOnHybridCmd
+    //!           gpuCtxOnHybridCmd
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS SetHybridCmdMgrToGpuContext(
+        PMOS_INTERFACE pOsInterface,
+        uint64_t       gpuCtxOnHybridCmd);
+
+    //!
+    //! \brief    Start the Cmd Consumer
+    //! \details  Start the Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS StartHybridCmdMgr(
+        PMOS_INTERFACE pOsInterface);
+
+    //!
+    //! \brief    Stop the Cmd Consumer
+    //! \details  Stop the Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS StopHybridCmdMgr(
+        PMOS_INTERFACE pOsInterface);
+
+    //!
+    //! \brief    Submit Cmd Package to Cmd Consumer
+    //! \details  Submit Cmd Package to Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    CmdPackage& cmdPackage
+    //!           [in] reference to cmdPackage
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS SubmitPackage(
+        PMOS_INTERFACE pOsInterface,
+        CmdPackage    &cmdPackage);
 
 #if _DEBUG || _RELEASE_INTERNAL
     //!

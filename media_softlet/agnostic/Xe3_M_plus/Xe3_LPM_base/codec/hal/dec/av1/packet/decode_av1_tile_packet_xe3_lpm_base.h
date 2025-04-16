@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include "decode_utils.h"
 #include "decode_av1_basic_feature.h"
 #include "decode_av1_tile_packet.h"
+#include "decode_av1_aqm_packet_xe3_lpm_base.h"
 
 namespace decode
 {
@@ -44,6 +45,9 @@ public:
         {
             m_avpItf   = std::static_pointer_cast<mhw::vdbox::avp::Itf>(m_hwInterface->GetAvpInterfaceNext());
             m_miItf    = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->GetMiInterfaceNext());
+#ifdef _DECODE_PROCESSING_SUPPORTED
+            m_aqmPkt = dynamic_cast<Av1DecodeAqmPktXe3LpmBase *>(m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DecodeAqmId)));
+#endif
         }
     }
     virtual ~Av1DecodeTilePktXe3_Lpm_Base() {}
@@ -58,6 +62,9 @@ public:
     virtual MOS_STATUS GetAvpPrimitiveCmdSize(uint32_t *commandsSize, 
         uint32_t *patchListSize, 
         PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    Av1DecodeAqmPktXe3LpmBase *m_aqmPkt = nullptr;
+#endif
 
 MEDIA_CLASS_DEFINE_END(decode__Av1DecodeTilePktXe3_Lpm_Base)
 };

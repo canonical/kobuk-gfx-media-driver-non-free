@@ -127,6 +127,7 @@ enum EncodeStatusReportType
     statusReportSliceReport,
     statusReportLpla,
     statusReportHucStatus2Reg,
+    statusReportCsEngineIdRegs,
     statusReportMfxMaxNum,
 
     statusReportMaxNum
@@ -150,6 +151,8 @@ struct EncoderStatusParameters
     uint32_t           frameWidth;
     uint32_t           frameHeight;
     void               *pBlkQualityInfo;
+    uint32_t            targetFrameSize;
+    uint32_t            brcMode;
 };
 
 struct ImageStatusControl
@@ -401,6 +404,7 @@ struct EncodeStatusMfx
     uint32_t                        numSkip8x8Block;        //!< Number of skipped 8x8 blocks
     EncodeStatusSliceReport         sliceReport;
     uint32_t                        hucStatus2Reg;          //!< Register value saving HuC Status2
+    uint32_t                        csEngineIdRegs[csInstanceIdMax]; //!< Saving csEngineID register value.
 };
 
 struct EncodeStatusRcs
