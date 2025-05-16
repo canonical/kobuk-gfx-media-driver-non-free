@@ -460,7 +460,7 @@ public:
         {
             std::set<uint32_t> bindingMap;
             bindingMap.insert(index);
-            m_surfaceBindingIndex.insert(std::make_pair(surface, bindingMap));
+            m_surfaceBindingIndex.emplace(surface, bindingMap);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -474,7 +474,7 @@ public:
         {
             VP_RENDER_ASSERTMESSAGE("No surface index created for current surface");
             std::set<uint32_t> bindingMap;
-            it = m_surfaceBindingIndex.insert(std::make_pair(surface, bindingMap)).first;
+            it = m_surfaceBindingIndex.emplace(surface, bindingMap).first;
         }
         return it->second;
     }
@@ -525,6 +525,13 @@ public:
         return 0;
     }
 
+    virtual uint32_t GetLargeGrfMode()
+    {
+        //by default not enable
+        //control all the kernels in BB, cannot only enable for one kernel in BB
+        return 0;
+    }
+
     virtual MOS_STATUS InitRenderHalSurfaceCMF(MOS_SURFACE* src, PRENDERHAL_SURFACE renderHalSurface);
 
     virtual MOS_STATUS SetInlineDataParameter(KRN_ARG args, RENDERHAL_INTERFACE *renderhal);
@@ -533,7 +540,7 @@ public:
     {
         if (surf != SurfaceTypeInvalid)
         {
-            m_bindlessSurfaceArray.insert(std::make_pair(surf, surfStateOffset));
+            m_bindlessSurfaceArray.emplace(surf, surfStateOffset);
         }
 
         return MOS_STATUS_SUCCESS;

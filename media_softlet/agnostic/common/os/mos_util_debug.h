@@ -269,6 +269,8 @@ typedef struct _MOS_MESSAGE_PARAMS
 #else
 #define MOS_FUNCTION __FUNCTION__
 #endif // USE_PRETTY_FUNCTION
+#else
+#define MOS_FUNCTION __FUNCTION__
 #endif
 
 class MosUtilDebug
@@ -950,7 +952,7 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 {                                                                           \
     if ((_ptr) == nullptr)                                                  \
     {                                                                       \
-        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");  \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer: " #_ptr);  \
         MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         return MOS_STATUS_NULL_POINTER;                                     \
     }                                                                       \

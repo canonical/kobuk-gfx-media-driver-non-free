@@ -5158,12 +5158,10 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     }
 
     // Init Cmd Buffer
-#ifdef _MMC_SUPPORTED
     if (isRender)
     {
         MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->SetCompositePrologCmd(pRenderHal, pCmdBuffer));
     }
-#endif // _MMC_SUPPORTED
 
     if (isRender)
     {
@@ -6804,7 +6802,7 @@ MOS_STATUS RenderHal_SetAndGetSamplerStates(
                     break;
                 }
 
-                samplerMap.insert(std::make_pair(i, stateOffsets));
+                samplerMap.emplace(i, stateOffsets);
 
                 if (MOS_FAILED(eStatus))
                 {

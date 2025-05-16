@@ -396,6 +396,10 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpKernelSets());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpGraphSets());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpGraphManager());
+    if (m_osInterface && m_osInterface->pfnSetHybridMgrSubmitMode && m_userFeatureControl)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSetHybridMgrSubmitMode(m_osInterface, m_userFeatureControl->GetHybridMgrSubmitMode()));
+    }
     // Create active tasks
     MediaTask *pTask = GetTask(MediaTask::TaskType::cmdTask);
     VP_PUBLIC_CHK_NULL_RETURN(pTask);
@@ -695,7 +699,7 @@ MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipe
         singlePipeCtx->SetOutputPipeMode(pipeReused->GetOutputPipeMode());
         singlePipeCtx->SetIsVeboxFeatureInuse(pipeReused->IsVeboxFeatureInuse());
         // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
-        eStatus = pipeReused->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd);
+        eStatus = pipeReused->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd, frameCounter);
         MT_LOG1(MT_VP_HAL_VEBOXNUM_CHECK, MT_NORMAL, MT_VP_HAL_VEBOX_NUMBER, m_numVebox)
         VP_PUBLIC_NORMALMESSAGE("Vebox Number for check %d", m_numVebox);
         if (MOS_SUCCEEDED(eStatus))
@@ -729,7 +733,9 @@ MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipe
     singlePipeCtx->SetIsVeboxFeatureInuse(pPacketPipe->IsVeboxFeatureInuse());
 
     // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
-    eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd);
+
+    eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd, frameCounter);
+
     MT_LOG1(MT_VP_HAL_VEBOXNUM_CHECK, MT_NORMAL, MT_VP_HAL_VEBOX_NUMBER, m_numVebox)
     VP_PUBLIC_NORMALMESSAGE("Vebox Number for check %d", m_numVebox);
     if (MOS_SUCCEEDED(eStatus))
