@@ -96,23 +96,6 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::InitScalabOption(HevcBasicFeature &basicFea
     MOS_ZeroMemory(&scalPars, sizeof(scalPars));
     DECODE_CHK_STATUS(InitContexOption(scalPars));
     scalPars.isSCC         = (basicFeature.m_hevcSccPicParams != nullptr);
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
-        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled() && !downSamplingFeature->IsVDAQMHistogramEnabled())
-    {
-        scalPars.usingSfc = true;
-        if (!MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
-        {
-            scalPars.disableScalability = true;
-        }
-    }
-    //Disable Scalability when histogram is enabled
-    if (downSamplingFeature != nullptr && (downSamplingFeature->m_histogramDestSurf || downSamplingFeature->m_histogramDebug))
-    {
-        scalPars.disableScalability = true;
-    }
-#endif
     scalPars.maxTileColumn = HEVC_NUM_MAX_TILE_COLUMN;
     scalPars.maxTileRow    = HEVC_NUM_MAX_TILE_ROW;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -353,9 +336,8 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(HevcPipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -388,12 +370,10 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::Uninitialize()
         pair.second->Destroy();
     }
 
-#ifdef _MMC_SUPPORTED
     if (m_mmcState != nullptr)
     {
         MOS_Delete(m_mmcState);
     }
-#endif
 
     return HevcPipeline::Uninitialize();
 }
@@ -453,7 +433,6 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::CreateSubPackets(DecodeSubPacketManager& su
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS HevcPipelineXe3_Lpm_Base::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -464,7 +443,6 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::InitMmcState()
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS HevcPipelineXe3_Lpm_Base::DumpParams(HevcBasicFeature &basicFeature)

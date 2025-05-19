@@ -365,6 +365,7 @@ public:
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe& executedFilters);
     MOS_STATUS GetUpdatedExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS &caps, SwFilterPipe &swfilterPipe, VP_SURFACE_SETTING &surfSetting);
+    MOS_STATUS EmplaceCrossPipeContextResource(PVP_SURFACE surface, PVP_SURFACE originSurface);
 
     virtual MOS_STATUS FillLinearBufferWithEncZero(VP_SURFACE *surface, uint32_t width, uint32_t height);
 
@@ -467,7 +468,7 @@ protected:
     void AddSurfaceConfig(bool _b64DI, bool _sfcEnable, bool _sameSample, bool _outOfBound, bool _pastRefAvailable, bool _futureRefAvailable, bool _firstDiField,
         VEBOX_SURFACE_ID _currentInputSurface, VEBOX_SURFACE_ID _pastInputSurface, VEBOX_SURFACE_ID _currentOutputSurface, VEBOX_SURFACE_ID _pastOutputSurface)
     {
-        m_veboxSurfaceConfigMap.insert(std::make_pair(VEBOX_SURFACES_CONFIG(_b64DI, _sfcEnable, _sameSample, _outOfBound, _pastRefAvailable, _futureRefAvailable, _firstDiField).value, VEBOX_SURFACES(_currentInputSurface, _pastInputSurface, _currentOutputSurface, _pastOutputSurface)));
+        m_veboxSurfaceConfigMap.emplace(VEBOX_SURFACES_CONFIG(_b64DI, _sfcEnable, _sameSample, _outOfBound, _pastRefAvailable, _futureRefAvailable, _firstDiField).value, VEBOX_SURFACES(_currentInputSurface, _pastInputSurface, _currentOutputSurface, _pastOutputSurface));
     }
 
     virtual MOS_STATUS GetIntermediaColorAndFormat3DLutOutput(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters);
@@ -569,6 +570,9 @@ protected:
     // AI Resource
     std::map<SurfaceType, VP_SURFACE *> m_aiIntermediateSurface = {};
     std::map<SurfaceType, VP_SURFACE *> m_aiNpuCopiedSurface    = {};
+
+    //Cross Pipe Context Resource
+    std::set<VP_SURFACE *> m_crossPipeContextSurfaces;
 
     MediaCopyWrapper *m_mediaCopyWrapper                      = nullptr;
 

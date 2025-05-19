@@ -298,7 +298,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED  
     if (mhwInterfaces != nullptr && info->Mode == CODECHAL_ENCODE_MODE_VP9)
     {
-        auto ptr                      = std::make_shared<mhw::vdbox::vdenc::xe_lpm_plus_base::v0::Impl>(osInterface);
+        auto ptr                  = std::make_shared<mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Impl>(osInterface);
         mhwInterfaces->m_vdencItf = std::dynamic_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
         CODECHAL_PUBLIC_CHK_NULL_RETURN(mhwInterfaces->m_vdencItf);
     }
@@ -442,7 +442,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-            m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe2_Lpm, hwInterface, debugInterface);
+            m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe3_Lpm, hwInterface, debugInterface);
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -452,10 +452,10 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_JPEG_ENCODE_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_JPEG_ENCODE_SUPPORTED) 
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
-            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapterXe3_Lpm_Base, hwInterface, debugInterface);
+            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapter, hwInterface, debugInterface);
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");

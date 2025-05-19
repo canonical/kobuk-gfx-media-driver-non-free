@@ -81,11 +81,12 @@ Copyright (c) 2024, Intel Corporation
 #include "decode_vvc_pipeline_adapter_xe3_lpm_base.h"
 #endif
 
-#ifdef _MEDIA_RESERVED
+
 #ifdef _JPEG_ENCODE_SUPPORTED
-#include "encode_jpeg_pipeline_adapter_xe3_lpm_base.h"
+#include "encode_jpeg_pipeline_adapter.h"
 #endif
 
+#ifdef _MEDIA_RESERVED
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "encode_hevc_vdenc_pipeline_adapter_xe3_lpm_base.h"
 #endif
@@ -100,7 +101,7 @@ Copyright (c) 2024, Intel Corporation
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#include "encode_vp9_vdenc_pipeline_adapter_xe2_lpm.h"
+#include "encode_vp9_vdenc_pipeline_adapter_xe3_lpm.h"
 #endif
 
 #include "renderhal_xe2_hpg_next.h"
