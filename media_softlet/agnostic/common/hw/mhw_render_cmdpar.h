@@ -63,9 +63,11 @@ struct MHW_VFE_SCOREBOARD
 
 struct MHW_HEAPS_RESOURCE
 {
-    PMOS_RESOURCE          presInstructionBuffer = nullptr;
-    PMHW_INLINE_DATA_PARAMS inlineDataParamsBase   = nullptr;
-    uint32_t                inlineDataParamSize   = 0;
+    PMOS_RESOURCE                       presInstructionBuffer  = nullptr;
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList      = nullptr;
+    uint32_t                            curbeResourceListSize  = 0;
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList     = nullptr;
+    uint32_t                            inlineResourceListSize = 0;
 };
 
 enum MHW_VFE_SLICE_DISABLE

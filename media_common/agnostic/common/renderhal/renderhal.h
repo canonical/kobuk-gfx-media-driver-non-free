@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,9 @@ class XRenderHal_Platform_Interface;
 #define MHW_RENDERHAL_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _message, ##__VA_ARGS__)
 
+#define MHW_RENDERHAL_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _message, ##__VA_ARGS__)
+
 #define MHW_RENDERHAL_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _message, ##__VA_ARGS__)
 
@@ -84,6 +87,8 @@ class XRenderHal_Platform_Interface;
 #define MHW_RENDERHAL_CHK_NULL_RETURN(_ptr)                                            \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
 
+#define MHW_RENDERHAL_CHK_VALUE_RETURN(_value, _expect_value)                          \
+    MOS_CHK_STATUS_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, ((_value) == (_expect_value)) ? MOS_STATUS_SUCCESS : MOS_STATUS_INVALID_PARAMETER)
 
 #define MHW_RENDERHAL_UNUSED(x)                                                         \
     MOS_UNUSED(x)
@@ -1004,6 +1009,13 @@ typedef struct _RENDERHAL_INTERFACE_DESCRIPTOR_PARAMS
 //! \brief  ======== HW Abstraction Params ===================================
 //!
 
+struct RENDERHAL_STATE_LOCATION
+{
+    PMOS_RESOURCE stateHeap = 0;
+    uint32_t      offset    = 0;
+};
+using PRENDERHAL_STATE_LOCATION = RENDERHAL_STATE_LOCATION*;
+
 typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
 {
     RENDERHAL_SURFACE_STATE_TYPE    Type                      : 5;              // Type of surface state
@@ -1066,6 +1078,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
     uint16_t                        wUYOffset;                                      //
     uint16_t                        wVXOffset;                                      // (X,Y) offset V (AVS/ADI)
     uint16_t                        wVYOffset;                                      //
+    RENDERHAL_STATE_LOCATION        stateLocation;                                  // Gfx Location of Surface State
 } RENDERHAL_SURFACE_STATE_ENTRY, *PRENDERHAL_SURFACE_STATE_ENTRY;
 
 //!
@@ -1385,6 +1398,7 @@ typedef struct _RENDERHAL_INTERFACE
 
     MOS_STATUS (*pfnSendBindlessSurfaceStates) (
                 PRENDERHAL_INTERFACE            pRenderHal,
+                PMOS_COMMAND_BUFFER             pCmdBuffer,
                 bool                            bNeedNullPatch);
 
     MOS_STATUS (* pfnBindSurfaceState) (
@@ -1479,12 +1493,12 @@ typedef struct _RENDERHAL_INTERFACE
                 PMHW_SAMPLER_STATE_PARAM    pSamplerParams,
                 int32_t                     iSamplers);
 
-    MOS_STATUS (*pfnSetAndGetSamplerStates) (
-                PRENDERHAL_INTERFACE     pRenderHal,
-                int32_t                  iMediaID,
-                PMHW_SAMPLER_STATE_PARAM pSamplerParams,
-                int32_t                  iSamplers,
-                std::map<uint32_t, uint32_t> &samplerMap);
+    MOS_STATUS (*pfnSetAndGetSamplerStates)(
+        PRENDERHAL_INTERFACE                          pRenderHal,
+        int32_t                                       iMediaID,
+        PMHW_SAMPLER_STATE_PARAM                      pSamplerParams,
+        int32_t                                       iSamplers,
+        std::map<uint32_t, RENDERHAL_STATE_LOCATION> &samplerMap);
 
     int32_t (* pfnAllocateMediaID) (
                 PRENDERHAL_INTERFACE        pRenderHal,

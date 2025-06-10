@@ -133,7 +133,11 @@ extern const RENDERHAL_SURFACE_STATE_ENTRY g_cInitSurfaceStateEntry =
     0,                              // wUXOffset
     0,                              // wUYOffset
     0,                              // wVXOffset
-    0                               // wVYOffset
+    0,                              // wVYOffset
+    {
+        nullptr,
+        0
+    }                              // stateLocation
 };
 
 const MHW_MEDIA_STATE_FLUSH_PARAM  g_cRenderHal_InitMediaStateFlushParams =
@@ -3024,6 +3028,7 @@ MOS_STATUS RenderHal_AssignSurfaceState(
     pStateHeap = pRenderHal->pStateHeap;
 
     uint8_t *pCurSurfaceState;
+    PMOS_RESOURCE stateHeap = nullptr;
     // Calculate the Offset to the Surface State
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pRenderHalPltInterface);
 
@@ -3051,8 +3056,10 @@ MOS_STATUS RenderHal_AssignSurfaceState(
         SURFACE_STATES_HEAP_OBJ                    *sufStateHeap = pStateHeap->surfaceStateMgr->m_surfStateHeap;
         MHW_RENDERHAL_CHK_NULL_RETURN(sufStateHeap);
         MHW_RENDERHAL_CHK_NULL_RETURN(sufStateHeap->pLockedOsResourceMem);
+        MHW_RENDERHAL_CHK_VALUE_RETURN(Mos_ResourceIsNull(&sufStateHeap->osResource), false);
         dwOffset = sufStateHeap->uiCurState * sufStateHeap->uiInstanceSize;
         pCurSurfaceState =sufStateHeap->pLockedOsResourceMem + dwOffset;
+        stateHeap                        = &sufStateHeap->osResource;
         pStateHeap->iCurrentSurfaceState = sufStateHeap->uiCurState;
 
         MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->AssignUsedSurfaceState(pStateHeap->iCurrentSurfaceState));
@@ -3074,6 +3081,8 @@ MOS_STATUS RenderHal_AssignSurfaceState(
     pSurfaceEntry->dwSurfStateOffset    = (uint32_t)-1;                         // Each platform to setup
     pSurfaceEntry->pSurfaceState        = pCurSurfaceState;
     pSurfaceEntry->pSurface             = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+    pSurfaceEntry->stateLocation.offset = dwOffset;
+    pSurfaceEntry->stateLocation.stateHeap = stateHeap;
     if (pSurfaceEntry->pSurface == nullptr)
     {
         MHW_RENDERHAL_ASSERTMESSAGE("Allocating Surface failed!");
@@ -5698,8 +5707,9 @@ MOS_STATUS RenderHal_AssignBindlessSurfaceStates(
     return eStatus;
 }
 
-MOS_STATUS RenderHal_SendSurfaces_Bindelss(
+MOS_STATUS RenderHal_SendBindlessSurfaces(
     PRENDERHAL_INTERFACE pRenderHal,
+    PMOS_COMMAND_BUFFER  pCmdBuffer,
     bool                 bNeedNullPatch)
 {
     PRENDERHAL_STATE_HEAP pStateHeap = nullptr;
@@ -5733,7 +5743,7 @@ MOS_STATUS RenderHal_SendSurfaces_Bindelss(
         SendSurfaceParams.pSurfaceToken       = (uint8_t *)&pStateHeap->pSurfaceEntry[index].SurfaceToken;
         SendSurfaceParams.pSurfaceStateSource = (uint8_t *)pStateHeap->pSurfaceEntry[index].pSurfaceState;
         SendSurfaceParams.iSurfaceStateOffset = index * pStateHeap->surfaceStateMgr->m_surfStateHeap->uiInstanceSize;
-        pRenderHal->pfnSendSurfaceStateEntry(pRenderHal, nullptr, &SendSurfaceParams);
+        pRenderHal->pfnSendSurfaceStateEntry(pRenderHal, pCmdBuffer, &SendSurfaceParams);
     }
 
     return eStatus;
@@ -6725,11 +6735,11 @@ MOS_STATUS RenderHal_SetSamplerStates(
 //! \return     MOS_STATUS MOS_STATUS_SUCCESS if success, otherwise MOS_STATUS_UNKNOWN
 //!
 MOS_STATUS RenderHal_SetAndGetSamplerStates(
-    PRENDERHAL_INTERFACE     pRenderHal,
-    int32_t                  iMediaID,
-    PMHW_SAMPLER_STATE_PARAM pSamplerParams,
-    int32_t                  iSamplers,
-    std::map<uint32_t, uint32_t> &samplerMap)
+    PRENDERHAL_INTERFACE                          pRenderHal,
+    int32_t                                       iMediaID,
+    PMHW_SAMPLER_STATE_PARAM                      pSamplerParams,
+    int32_t                                       iSamplers,
+    std::map<uint32_t, RENDERHAL_STATE_LOCATION> &samplerMap)
 {
     MOS_STATUS               eStatus;
     PRENDERHAL_STATE_HEAP    pStateHeap;
@@ -6738,7 +6748,8 @@ MOS_STATUS RenderHal_SetAndGetSamplerStates(
     int32_t                  iOffsetSampler;
     uint8_t                 *pPtrSampler;
     int32_t                  i;
-    uint32_t                 stateOffsets = 0;
+    uint32_t                 stateOffset = 0;
+    RENDERHAL_STATE_LOCATION stateLocation = {};
 
     eStatus = MOS_STATUS_UNKNOWN;
 
@@ -6793,7 +6804,9 @@ MOS_STATUS RenderHal_SetAndGetSamplerStates(
                 switch (pSamplerStateParams->SamplerType)
                 {
                 case MHW_SAMPLER_TYPE_3D:
-                    stateOffsets = iOffsetSampler + i * pRenderHal->pHwSizes->dwSizeSamplerState;
+                    MHW_RENDERHAL_CHK_VALUE_RETURN(Mos_ResourceIsNull(&pStateHeap->GshOsResource), false);
+                    stateLocation.offset    = iOffsetSampler + (pRenderHal->pHwSizes->dwSizeSamplerState * i);
+                    stateLocation.stateHeap = &pStateHeap->GshOsResource;
                     eStatus      = pRenderHal->pMhwStateHeap->SetSamplerState(pPtrSampler, pSamplerStateParams);
                     break;
                 default:
@@ -6802,7 +6815,7 @@ MOS_STATUS RenderHal_SetAndGetSamplerStates(
                     break;
                 }
 
-                samplerMap.emplace(i, stateOffsets);
+                samplerMap.insert(std::make_pair(i, stateLocation));
 
                 if (MOS_FAILED(eStatus))
                 {
@@ -7482,7 +7495,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSetSurfaceStateBuffer      = RenderHal_SetSurfaceStateBuffer;
     pRenderHal->pfnCalculateYOffset           = RenderHal_CalculateYOffset;
     pRenderHal->pfnAssignBindlessSurfaceStates = RenderHal_AssignBindlessSurfaceStates;
-    pRenderHal->pfnSendBindlessSurfaceStates   = RenderHal_SendSurfaces_Bindelss;
+    pRenderHal->pfnSendBindlessSurfaceStates   = RenderHal_SendBindlessSurfaces;
 
     pRenderHal->pfnGetPlaneDefinitionForCommonMessage = RenderHal_GetPlaneDefinitionForCommonMessage;
 
@@ -7747,4 +7760,3 @@ MOS_STATUS RenderHal_SetBufferSurfaceForHwAccess(
 
     return eStatus;
 }
-
