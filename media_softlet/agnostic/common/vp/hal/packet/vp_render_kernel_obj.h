@@ -86,9 +86,8 @@ using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
 using KERNEL_SURFACE_CONFIG = std::map<SurfaceType, KERNEL_SURFACE_STATE_PARAM>;
 using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceType, std::set<uint32_t>>;
-using KERNEL_STATELESS_BUFF_CONFIG = std::map<SurfaceType, uint64_t>;
-using KERNEL_BINDELESS_SURFACE = std::map<SurfaceType, std::set<uint32_t>>;
-using KERNEL_BINDELESS_SAMPLER = std::map<uint32_t, uint32_t>;
+using KERNEL_BINDELESS_SURFACE = std::map<SurfaceType, std::vector<RENDERHAL_STATE_LOCATION>>;
+using KERNEL_BINDELESS_SAMPLER = std::map<uint32_t, RENDERHAL_STATE_LOCATION>;
 
 typedef struct _KERNEL_PARAMS
 {
@@ -534,19 +533,25 @@ public:
 
     virtual MOS_STATUS InitRenderHalSurfaceCMF(MOS_SURFACE* src, PRENDERHAL_SURFACE renderHalSurface);
 
-    virtual MOS_STATUS SetInlineDataParameter(KRN_ARG args, RENDERHAL_INTERFACE *renderhal);
-
-    virtual MOS_STATUS UpdateBindlessSurfaceResource(SurfaceType surf, std::set<uint32_t> surfStateOffset)
+    virtual MOS_STATUS UpdateBindlessSurfaceResource(SurfaceType surf, std::vector<RENDERHAL_STATE_LOCATION> stateLocations)
     {
-        if (surf != SurfaceTypeInvalid)
+        if (surf != SurfaceTypeInvalid && surf != SurfaceTypeSubPlane)
         {
-            m_bindlessSurfaceArray.emplace(surf, surfStateOffset);
+            auto handle = m_bindlessSurfaceArray.find(surf);
+            if (handle == m_bindlessSurfaceArray.end())
+            {
+                m_bindlessSurfaceArray.insert(std::make_pair(surf, stateLocations));
+            }
+            else
+            {
+                handle->second = stateLocations;
+            }
         }
 
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual std::map<uint32_t, uint32_t>& GetBindlessSamplers()
+    virtual KERNEL_BINDELESS_SAMPLER &GetBindlessSamplers()
     {
         return m_bindlessSamperArray;
     }
@@ -557,6 +562,8 @@ public:
         m_bindlessSamperArray.clear();
         return MOS_STATUS_SUCCESS;
     }
+
+    MOS_STATUS UpdateCurbeStateHeapInfo(PMOS_RESOURCE stateHeap, uint8_t *statePtr, uint32_t offset);
 
 protected:
 
@@ -574,10 +581,6 @@ protected:
 
     virtual MOS_STATUS CpPrepareResources();
 
-    virtual MOS_STATUS SetupStatelessBuffer();
-
-    virtual MOS_STATUS SetupStatelessBufferResource(SurfaceType surf, bool isWrite);
-
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) = 0;
 
     virtual MOS_STATUS GetAlignedLength(uint32_t &curbeLength, uint32_t &curbeLengthAligned, RENDERHAL_KERNEL_PARAM kernelParam, uint32_t dwBlockAlign)
@@ -588,6 +591,11 @@ protected:
 
     virtual MOS_STATUS SetTuningFlag(PKERNEL_TUNING_PARAMS tuningParams);
 
+    virtual MOS_STATUS SetInlineDataParameter(KRN_ARG arg, uint8_t *inlineData);
+
+    virtual MOS_STATUS SetBindlessSamplerToResourceList(KRN_ARG &arg, uint32_t samplerIndex);
+    virtual MOS_STATUS SetBindlessSurfaceStateToResourceList(KRN_ARG &arg);
+
 protected:
 
     VP_SURFACE_GROUP                                        *m_surfaceGroup = nullptr;  // input surface process surface groups
@@ -596,9 +604,10 @@ protected:
     KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
     PVpAllocator                                            m_allocator = nullptr;
     MediaUserSettingSharedPtr                               m_userSettingPtr = nullptr;  // usersettingInstance
-    KERNEL_STATELESS_BUFF_CONFIG                            m_statelessArray;
     KERNEL_BINDELESS_SURFACE                                m_bindlessSurfaceArray;
     KERNEL_BINDELESS_SAMPLER                                m_bindlessSamperArray;
+    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS>         m_curbeResourceList  = {};
+    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS>         m_inlineResourceList = {};
     // kernel attribute 
     std::string                                             m_kernelName = "";
     void *                                                  m_kernelBinary = nullptr;
@@ -609,13 +618,14 @@ protected:
     DelayLoadedKernelType                                   m_kernelType     = KernelNone;
     KernelIndex                                             m_kernelIndex = 0;          // index of current kernel in KERNEL_PARAMS_LIST
 
+    RENDERHAL_STATE_LOCATION                                m_curbeLocation     = {};
+
     PKERNEL_TUNING_PARAMS                                   m_kernelTuningParams = nullptr;
 
     bool                                                    m_isAdvKernel = false;      // true mean multi kernel can be submitted in one workload.
     bool                                                    m_useIndependentSamplerGroup = false; //true means multi kernels has their own stand alone sampler states group. only can be true when m_isAdvKernel is true.
 
     std::shared_ptr<mhw::vebox::Itf>                        m_veboxItf = nullptr;
-    std ::vector<MHW_INLINE_DATA_PARAMS>                    m_inlineDataParams = {};
 
     KERNEL_ARG_INDEX_SURFACE_MAP                            m_argIndexSurfMap = {};
 

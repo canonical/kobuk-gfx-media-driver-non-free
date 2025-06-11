@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,9 @@ class MhwCpInterface;
 
 #define RENDER_PACKET_ASSERTMESSAGE(_message, ...) \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
+
+#define RENDER_PACKET_WARNINGMESSAGE(_message, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
 
 #define RENDER_PACKET_NORMALMESSAGE(_message, ...) \
     MOS_NORMALMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
@@ -121,10 +124,14 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     bool                                hasBarrier;
     uint32_t                            slmSize;
-    PMHW_INLINE_DATA_PARAMS             inlineDataParamBase;
-    uint32_t                            inlineDataParamSize;
 
     uint32_t                            simdSize;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
+    uint32_t                            curbeResourceListSize;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList;
+    uint32_t                            inlineResourceListSize;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
@@ -202,11 +209,11 @@ public:
     }
 
     virtual uint32_t SetSurfaceForHwAccess(
-        PMOS_SURFACE                    surface,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        PMOS_SURFACE                           surface,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     // Step3: RSS Setup, return index insert in binding table
     virtual uint32_t SetSurfaceForHwAccess(
@@ -226,22 +233,22 @@ public:
         uint32_t *                      numOfSurfaceEntries = nullptr);
 
     virtual MOS_STATUS SetSurfaceForHwAccess(
-        PMOS_SURFACE                    surface,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        std::set<uint32_t>             &bindingIndexes,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets,
-        uint32_t                        capcityOfSurfaceEntries = 0,
-        PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
-        uint32_t                       *numOfSurfaceEntries = nullptr);
+        PMOS_SURFACE                           surface,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        std::set<uint32_t>                    &bindingIndexes,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations,
+        uint32_t                               capcityOfSurfaceEntries = 0,
+        PRENDERHAL_SURFACE_STATE_ENTRY        *surfaceEntries          = nullptr,
+        uint32_t                              *numOfSurfaceEntries     = nullptr);
 
     virtual uint32_t SetBufferForHwAccess(
-        PMOS_SURFACE                    buffer,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        PMOS_SURFACE                           buffer,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                    buffer,
@@ -251,12 +258,12 @@ public:
         bool                            bWrite);
     
     virtual MOS_STATUS SetBufferForHwAccess(
-        PMOS_SURFACE                    buffer,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        std::set<uint32_t>             &bindingIndexes,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        PMOS_SURFACE                           buffer,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        std::set<uint32_t>                    &bindingIndexes,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     virtual uint32_t SetBufferForHwAccess(
         MOS_BUFFER                      buffer,
