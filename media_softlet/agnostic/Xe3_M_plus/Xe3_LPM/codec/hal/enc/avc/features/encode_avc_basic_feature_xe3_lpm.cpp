@@ -40,6 +40,9 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcBasicFeatureXe3_Lpm)
         params.captureMode           = mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Cmd::VDENC_PIPE_MODE_SELECT_CMD::CAPTURE_MODE_PARALLEFROMCAMERAPIPE;
     }
 
+    params.verticalShift32Minus1   = 0;
+    params.numVerticalReqMinus1    = 11;
+
     return MOS_STATUS_SUCCESS;
 }
 

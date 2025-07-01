@@ -1352,7 +1352,8 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
             if (surfOutput->pHDRParams)
             {
                 m_Params.uiMaxDisplayLum = surfOutput->pHDRParams->max_display_mastering_luminance;
-                if (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+                if ((surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084) ||
+                    (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && IS_RGB64_FLOAT_FORMAT(surfOutput->Format))) // For FP16 output typical usage
                 {
                     m_Params.hdrMode = VPHAL_HDR_MODE_H2H;
                 }
@@ -2176,6 +2177,7 @@ MOS_STATUS SwFilterAiBase::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterAiSettingPipe(params, m_Params.settings));
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeStageGroupIndex(m_Params.settings, m_Params.splitGroupIndex));
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeNpu(m_Params.settings));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(m_Params.perfTag));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2294,6 +2296,12 @@ MOS_STATUS SwFilterAiBase::GetStagePipeSettings(uint32_t stageIndex, std::vector
         currentStagePipeSettings.push_back(m_Params.settings.at(layerIndex).get());
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterAiBase::SetPerfTag(VPHAL_PERFTAG &perfTag)
+{
+    perfTag = VPHAL_NONE;
     return MOS_STATUS_SUCCESS;
 }
 
