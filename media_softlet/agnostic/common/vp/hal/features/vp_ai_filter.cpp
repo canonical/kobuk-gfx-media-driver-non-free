@@ -39,6 +39,7 @@ void AI_KERNEL_PARAM::Init()
     kernelName.clear();
     threadWidth  = 0;
     threadHeight = 0;
+    threadDepth  = 0;
     localWidth   = 0;
     localHeight  = 0;
     kernelStatefulSurfaces.clear();
@@ -106,6 +107,21 @@ MOS_STATUS VpAiFilter::SetExecuteEngineCaps(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpAiFilter::SetPerfTag(SwFilterPipe &executingPipe, VPHAL_PERFTAG &perfTag)
+{
+    SwFilterSubPipe *subPipe = executingPipe.GetSwFilterSubPipe(true, 0);
+    VP_PUBLIC_CHK_NULL_RETURN(subPipe);
+
+    SwFilterAiBase *ai = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(subPipe->GetAiSwFilter(ai));
+    VP_PUBLIC_CHK_NULL_RETURN(ai)
+
+    FeatureParamAi &swAiParam = ai->GetSwFilterParams();
+    perfTag                   = swAiParam.perfTag;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpAiFilter::CalculateEngineParams(VpGraphManager *graphManager)
 {
     VP_FUNC_CALL();
@@ -128,7 +144,7 @@ MOS_STATUS VpAiFilter::CalculateEngineParams(VpGraphManager *graphManager)
         }
 
         VP_PUBLIC_CHK_STATUS_RETURN(InitKrnParams(m_renderAiParams->ai_kernelParams, *m_executingPipe));
-
+        VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(*m_executingPipe, m_renderAiParams->ai_kernelConfig.perfTag));
     }
     else if (m_executeCaps.bNpu)
     {
@@ -195,6 +211,7 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
         kernelParam.kernelName   = singleLayerSetting.kernelName;
         kernelParam.threadWidth  = singleLayerSetting.groupWidth;
         kernelParam.threadHeight = singleLayerSetting.groupHeight;
+        kernelParam.threadDepth  = singleLayerSetting.groupDepth;
         kernelParam.localWidth   = singleLayerSetting.localWidth;
         kernelParam.localHeight  = singleLayerSetting.localHeight;
 
@@ -542,7 +559,12 @@ MOS_STATUS PolicyAiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
         SwFilterAiBase *filter2ndPass = featureAI;
         VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
         FeatureParamAi &params2ndPass = filter2ndPass->GetSwFilterParams();
-        
+        uint32_t        settingIndex  = param.splitGroupIndex.at(params2ndPass.stageIndex); //the setting index of 2nd filter
+        if (settingIndex >= param.settings.size())
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
         SwFilterAiBase *filter1ndPass = (SwFilterAiBase *)feature.Clone();
         VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
         filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
@@ -551,11 +573,6 @@ MOS_STATUS PolicyAiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
 
         params2ndPass.stageIndex += 1;
         // Clear engine caps for filter in 2nd pass
-        uint32_t settingIndex = param.splitGroupIndex.at(params2ndPass.stageIndex - 1);
-        if (settingIndex >= param.settings.size())
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-        }
         filter2ndPass->SetFeatureType(FeatureType(filter2ndPass->GetFeatureType() & FEATURE_TYPE_MASK));
         filter2ndPass->SetRenderTargetType(RenderTargetTypeSurface);
         filter2ndPass->GetFilterEngineCaps().value           = 0;
