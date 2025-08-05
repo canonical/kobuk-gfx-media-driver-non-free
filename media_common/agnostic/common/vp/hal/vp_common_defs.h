@@ -204,12 +204,15 @@ enum VpKernelIDNext
     kernelHdr3DLutCalcOcl,
     kernelHVSCalc,
 
+    //Add New Kernel ID Here
+
     // AI Common
     kernelAiCommon,
     kernelAiCommonEnd = kernelAiCommon + 0x1000,
 
     vpKernelIDNextMax
 };
+C_ASSERT(kernelAiCommonEnd == vpKernelIDNextMax - 1);
 
 //!
 //! \brief Base VP graph list
@@ -983,7 +986,9 @@ typedef struct _VPHAL_VIDEO_COLOR_RGBA
 typedef struct _VPHAL_COLORFILL_PARAMS
 {
     bool         bYCbCr                 = false;
+    bool         isFloat                = false;
     uint32_t     Color                  = 0;
+    float        ColorFloat[4]          = {0.0f};
     VPHAL_VIDEO_COLOR_RGBA Color1       = {};
     VPHAL_CSPACE CSpace                 = CSpace_None;
     bool         bDisableColorfillinSFC = false;
